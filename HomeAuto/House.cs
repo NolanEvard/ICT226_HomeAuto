@@ -45,86 +45,19 @@ namespace HomeAuto
         }
         public void SwitchOn(string name)
         {
-            if (!(CheckIfSwitchExists(name)))
-            {
-                throw new UnknownNameException();
-            }
-
-            bool itemHasBeenChanged = false;
-            foreach (Switch item in switches)
-            {
-                if (item.Name == name)
-                {
-                    if (!(item.State)){
-                        item.ChangeState();
-                        itemHasBeenChanged = true;
-                        UpdateSwitchedOffCount(switchedOffCount - 1);
-                        UpdateSwitchedOnCount(SwitchedOnCount + 1);
-                    }
-                    else
-                    {
-                        itemHasBeenChanged = true;
-                    }
-                }
-            }
-            if (!(itemHasBeenChanged))
-            {
-                throw new UnknownNameException();
-            }
+            ChangeOneItemState(false, name);
         }
         public void SwitchOff(string name)
         {
-            bool itemHasBeenChanged = false;
-
-            if (!(CheckIfSwitchExists(name)))
-            {
-                throw new UnknownNameException();
-            }
-
-            foreach (Switch item in switches)
-            {
-                if (item.Name == name)
-                {
-                    if (item.State)
-                    {
-                        item.ChangeState();
-                        itemHasBeenChanged = true;
-                        UpdateSwitchedOffCount(switchedOffCount + 1);
-                        UpdateSwitchedOnCount(SwitchedOnCount - 1);
-                    }
-                    else
-                    {
-                        itemHasBeenChanged = true;
-                    }
-                }
-            }
-            if (!(itemHasBeenChanged))
-            {
-                throw new UnknownNameException();
-            }
+            ChangeOneItemState(true, name);
         }
         public void SwitchOnAll()
         {
-            foreach (Switch item in switches)
-            {
-                if (!(item.State)) {
-                    item.ChangeState();
-                }
-            }
-            UpdateSwitchedOnCount(switches.Count);
-            UpdateSwitchedOffCount(0);
+            ChangeAllItemState(false);
         }
         public void SwitchOffAll()
         {
-            foreach (Switch item in switches)
-            {
-                if (item.State)
-                {
-                    item.ChangeState();
-                }
-                UpdateSwitchedOnCount(0);
-                UpdateSwitchedOffCount(switches.Count);
-            }
+            ChangeAllItemState(true);
         }
 
         private bool CheckIfSwitchExists(string name)
@@ -145,6 +78,53 @@ namespace HomeAuto
         private void UpdateSwitchedOnCount(int count)
         {
             switchedOnCount = count;
+        }
+        private void ChangeOneItemState(bool initialState, string name)
+        {
+            if (!(CheckIfSwitchExists(name)))
+            {
+                throw new UnknownNameException();
+            }
+            foreach (Switch item in switches)
+            {
+                if (item.Name == name)
+                {
+                    if (item.State == initialState)
+                    {
+                        item.ChangeState();
+                        if (initialState)
+                        {
+                            UpdateSwitchedOffCount(switchedOffCount + 1);
+                            UpdateSwitchedOnCount(SwitchedOnCount - 1);
+                        }
+                        else
+                        {
+                            UpdateSwitchedOffCount(switchedOffCount - 1);
+                            UpdateSwitchedOnCount(SwitchedOnCount + 1);
+                        }
+                    }
+                }
+            }
+        }
+        private void ChangeAllItemState(bool initialState)
+        {
+            foreach (Switch item in switches)
+            {
+                if (item.State == initialState)
+                {
+                    item.ChangeState();
+                }
+            }
+            if (initialState)
+            {
+                UpdateSwitchedOnCount(0);
+                UpdateSwitchedOffCount(switches.Count);
+            }
+            else
+            {
+                UpdateSwitchedOnCount(switches.Count);
+                UpdateSwitchedOffCount(0);
+            }
         }
     }
     public class HouseExceptions : Exception {}
